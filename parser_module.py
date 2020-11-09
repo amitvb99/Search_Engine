@@ -1,6 +1,7 @@
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from document import Document
+import re
 
 
 class Parse:
@@ -14,9 +15,40 @@ class Parse:
         :param text:
         :return:
         """
-        text_tokens = word_tokenize(text)
-        text_tokens_without_stopwords = [w.lower() for w in text_tokens if w not in self.stop_words]
+        text_tokens = self.tokenize(text)
+        text_tokens = text.split(' ')
+        text_tokens_without_stopwords = [w for w in text_tokens if w not in self.stop_words]
+
         return text_tokens_without_stopwords
+
+    def hashtag_rule(self, text):
+        if '_' in text:
+            return text.split('_') + ['#' + text.replace('_', '')]
+
+        else:
+            splitted = re.sub('([A-Z][a-z]+)', r' \1', re.sub('([A-Z]+)', r' \1', text)).split()
+            return [s.lower for s in splitted] + ['#' + text]
+
+    def URL_rule(self, text):
+        splitted = re.split("[, \-!?:.=\n/…]+", text)
+        splitted[2] = splitted[2] + '.' + splitted[3]
+        splitted.remove(splitted[3])
+        return splitted
+
+    def tag_rule(self, text):
+        pass
+
+    def upper_lower_case_rule(self, text):
+        pass
+
+    def percentage_rule(self, text):
+        pass
+
+    def numbers_rule(self, text):
+        pass
+
+    def name_entity_rule(self, text):
+        pass
 
     def parse_doc(self, doc_as_list):
         """
