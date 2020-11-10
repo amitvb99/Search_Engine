@@ -1,8 +1,8 @@
 from nltk.corpus import stopwords
+from nltk import pos_tag
 from nltk.tokenize import word_tokenize
 from document import Document
 import re
-
 
 class Parse:
 
@@ -18,8 +18,31 @@ class Parse:
         text_tokens = self.tokenize(text)
         text_tokens = text.split(' ')
         text_tokens_without_stopwords = [w for w in text_tokens if w not in self.stop_words]
+        text_tokens_after_rules = []
 
-        return text_tokens_without_stopwords
+        for (i, token) in enumerate(text_tokens_without_stopwords):
+            if token[0] == '#':
+                text_tokens_after_rules = text_tokens_after_rules + self.hashtag_rule(token[1:])
+            elif token[0:4] == 'http':
+                text_tokens_after_rules = text_tokens_after_rules + self.URL_rule(token)
+            elif token[0] == '@':
+                text_tokens_after_rules.append(token)
+            # TODO: Upper-Lower case rule
+            elif token[-1] == '%' or text_tokens_without_stopwords[i+1].lower() == 'percent' or text_tokens_without_stopwords[i+1].lower() == 'percentage':
+                text_tokens_after_rules.append(self.percentage_rule(token))
+                next(enumerate(text_tokens_without_stopwords), None)
+            elif token.replace('.','').replace(',', '').isdigit():
+                if text_tokens_without_stopwords[i+1].lower() == 'thousand':
+                    text_tokens_after_rules.append(self.numbers_rule(token + '0'*3))
+                elif text_tokens_without_stopwords[i+1].lower() == 'million':
+                    text_tokens_after_rules.append(self.numbers_rule(token + '0'*6))
+                elif text_tokens_without_stopwords[i+1].lower() == 'billion':
+                    text_tokens_after_rules.append(self.numbers_rule(token + '0'*9))
+                # TODO: fractions
+                # elif '/' in text_tokens_without_stopwords[i+1]:
+                #     text_tokens_without_stopwords
+
+        return text_tokens_after_rules
 
     def hashtag_rule(self, text):
         if '_' in text:
@@ -35,17 +58,25 @@ class Parse:
         splitted.remove(splitted[3])
         return splitted
 
-    def tag_rule(self, text):
-        pass
-
     def upper_lower_case_rule(self, text):
         pass
 
     def percentage_rule(self, text):
-        pass
+        if text[-1] == '%':
+            return text
+        else:
+            return text + '%'
 
     def numbers_rule(self, text):
-        pass
+        number = float(text.split()[0].replace(',', ''))
+        if number < 10**3:
+            return str(number)
+        elif 10**3 <= number < 10**6:
+            return str(round(number / 10**3, 3)) + 'K'
+        elif 10**6 <= number < 10**9:
+            return str(round(number / 10**6, 3)) + 'M'
+        else:
+            return str(round(number / 10**9, 3)) + 'B'
 
     def name_entity_rule(self, text):
         pass
