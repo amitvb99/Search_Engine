@@ -1,8 +1,9 @@
 from nltk.corpus import stopwords
 from nltk import pos_tag
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import TweetTokenizer
 from document import Document
 import re
+
 
 class Parse:
 
@@ -15,32 +16,40 @@ class Parse:
         :param text:
         :return:
         """
-        text_tokens = self.tokenize(text)
-        text_tokens = text.split(' ')
+        tt = TweetTokenizer()
+        text_tokens = tt.tokenize(text)
+        # text_tokens = text.split(' ')
         text_tokens_without_stopwords = [w for w in text_tokens if w not in self.stop_words]
         text_tokens_after_rules = []
 
+        url_pattern = re.compile(r'^http[s]?://(?:[a-z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-f][0-9a-f]))+')
+        hashtag_pattern = re.compile(r'(?:\#+[\w_]+[\w\'_\-]*[\w_]+)')
+        mention_pattern = re.compile(r'(?:@[\w_]+)')
+        numbers_pattern = re.compile(r'(?:(?:\d+,?)+(?:\.?\d+)?)')
+        fractions_pattern = re.compile(r'(-?\d+)/(-?\d+)')
+        currency_pattren = re.compile(r'^[\$¢£€]?([0-9]{1,3},([0-9]{3},)*[0-9]{3}|[0-9]+)(\.[0-9][0-9])?[\$¢£€]?$')
         for (i, token) in enumerate(text_tokens_without_stopwords):
-            if token[0] == '#':
+            if hashtag_pattern.match(token):
                 text_tokens_after_rules = text_tokens_after_rules + self.hashtag_rule(token[1:])
-            elif token[0:4] == 'http':
+            elif url_pattern.match(token):
                 text_tokens_after_rules = text_tokens_after_rules + self.URL_rule(token)
-            elif token[0] == '@':
+            elif mention_pattern.match(token):
                 text_tokens_after_rules.append(token)
             # TODO: Upper-Lower case rule
-            elif token[-1] == '%' or text_tokens_without_stopwords[i+1].lower() == 'percent' or text_tokens_without_stopwords[i+1].lower() == 'percentage':
-                text_tokens_after_rules.append(self.percentage_rule(token))
+            elif i+1 < len(text_tokens_without_stopwords):
+                if token[-1] == '%' or text_tokens_without_stopwords[i+1].lower() == 'percent' or text_tokens_without_stopwords[i+1].lower() == 'percentage':
+                    text_tokens_after_rules.append(self.percentage_rule(token))
+                elif token.replace('.', '').replace(',', '').isdigit():
+                    if text_tokens_without_stopwords[i+1].lower() == 'thousand':
+                        text_tokens_after_rules.append(self.numbers_rule(token + '0'*3))
+                    elif text_tokens_without_stopwords[i+1].lower() == 'million':
+                        text_tokens_after_rules.append(self.numbers_rule(token + '0'*6))
+                    elif text_tokens_without_stopwords[i+1].lower() == 'billion':
+                        text_tokens_after_rules.append(self.numbers_rule(token + '0'*9))
+                    elif fractions_pattern.match(text_tokens_without_stopwords[i+1]):
+                        frac = text_tokens_without_stopwords[i+1]
+                        text_tokens_after_rules.append(self.numbers_rule(token) + f' {frac}')
                 next(enumerate(text_tokens_without_stopwords), None)
-            elif token.replace('.','').replace(',', '').isdigit():
-                if text_tokens_without_stopwords[i+1].lower() == 'thousand':
-                    text_tokens_after_rules.append(self.numbers_rule(token + '0'*3))
-                elif text_tokens_without_stopwords[i+1].lower() == 'million':
-                    text_tokens_after_rules.append(self.numbers_rule(token + '0'*6))
-                elif text_tokens_without_stopwords[i+1].lower() == 'billion':
-                    text_tokens_after_rules.append(self.numbers_rule(token + '0'*9))
-                # TODO: fractions
-                # elif '/' in text_tokens_without_stopwords[i+1]:
-                #     text_tokens_without_stopwords
 
         return text_tokens_after_rules
 

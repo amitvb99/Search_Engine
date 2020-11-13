@@ -25,6 +25,13 @@ class Indexer:
                     self.inverted_idx[term] += 1
 
                 self.postingDict[term].append((document.tweet_id, document_dictionary[term]))
-
+                self.postingDict[term].sort()  # sort by tweet id
             except:
                 print('problem with the following key {}'.format(term[0]))
+
+    def save_posting(self):
+        for term in self.postingDict.keys():
+            f = open(f'{term}.txt', 'w')
+            f.write(", ".join(self.postingDict[term]))
+            f.close()
+
