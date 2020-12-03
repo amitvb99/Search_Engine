@@ -1,9 +1,11 @@
+import os
+
 class ConfigClass:
     def __init__(self):
-        self.corpusPath = ''
+        self.corpusPath = r'C:\Users\amitv\University\Information retrieval\corpus'
         self.savedFileMainFolder = ''
-        self.saveFilesWithStem = self.savedFileMainFolder + "/WithStem"
-        self.saveFilesWithoutStem = self.savedFileMainFolder + "/WithoutStem"
+        self.saveFilesWithStem = os.path.realpath("WithStem")
+        self.saveFilesWithoutStem = os.path.realpath("WithoutStem")
         self.toStem = False
 
         print('Project was created successfully..')

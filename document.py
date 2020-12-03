@@ -25,3 +25,8 @@ class Document:
         self.quote_url = quote_url
         self.term_doc_dictionary = term_doc_dictionary
         self.doc_length = doc_length
+        if len(term_doc_dictionary) is 0:
+            self.max_tf = 0
+        else:
+            self.max_tf = max(term_doc_dictionary.values())        # The frequency of the most common term in the tweet
+        self.unique_terms = len(term_doc_dictionary.keys())        # The number of different terms in the tweet

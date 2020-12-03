@@ -23,6 +23,10 @@ class ReadFile:
         :return: a list of dataframes with all tweets in the corpus.
         """
         docs = []
-        for file in os.listdir(self.corpus_path):
-            docs = docs + self.read_file(file)
+        for root, dirs, files in os.walk(self.corpus_path):
+            for file in files:
+                # path = root + os.sep + file
+                # if path.endswith('.parquet'):
+                if file.endswith('.parquet'):
+                    docs += self.read_file(file)
         return docs

@@ -13,11 +13,13 @@ class Ranker:
         return sorted(relevant_doc.items(), key=lambda item: item[1], reverse=True)
 
     @staticmethod
-    def retrieve_top_k(sorted_relevant_doc, k=1):
+    def retrieve_top_k(sorted_relevant_doc, k=2000):
         """
         return a list of top K tweets based on their ranking from highest to lowest
         :param sorted_relevant_doc: list of all candidates docs.
         :param k: Number of top document to return
         :return: list of relevant document
         """
+        if k > 2000:
+            k = 2000
         return sorted_relevant_doc[:k]
