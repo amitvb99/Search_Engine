@@ -1,6 +1,4 @@
-import pickle
 import string
-from math import log10
 import os
 import utils
 
@@ -9,7 +7,6 @@ class Indexer:
 
     def __init__(self, config, group_size=1):
         self.inverted_idx = {}
-        # self.postingDict = {}
         self.config = config
         self.write_counter = 0
         self.group_size = group_size
@@ -51,8 +48,6 @@ class Indexer:
                         new_tup = (document.tweet_id, document.max_tf, document.unique_terms, fij, tf)
                         letter = self.letters_dict[term[0].lower()]
                         letter[term.lower()].append(new_tup)
-                        # self.postingDict[term].sort()  # sort by tweet id
-                    # TODO: add another thing to save in posting
                 else:
                     if term not in self.letters_dict['special']:
                         letter = self.letters_dict['special']
@@ -61,11 +56,8 @@ class Indexer:
                         new_tup = (document.tweet_id, document.max_tf, document.unique_terms, fij, tf)
                         letter = self.letters_dict['special']
                         letter[term].append(new_tup)
-
-
             except:
-                print(document.tweet_id)
-                print('problem with the following key {}'.format(term[0]))
+                continue
 
         self.write_counter += 1
 

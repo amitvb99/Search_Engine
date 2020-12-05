@@ -32,14 +32,12 @@ def delete_obj(name):
     if os.path.exists(name):
         os.remove(name)
 
-    # def join_dicts(self, d1, d2):
-    #     for k in d2.keys():
-    #         if k in d1.keys():
-    #             d1[k] += [d2[k]]
-    #             for idx, (doc_id, fij, tf, wij) in enumerate(d1[k]):
-    #                 wij = tf * log10(self.N / self.inverted_idx[k])
-    #                 d1[k][idx] = (doc_id, fij, tf, wij)
-    #         else:
-    #             d1[k] = [d2[k]]
-    #
-    #     d1[k].sort()
+
+def load_inverted_index(path):
+    """
+    This function loads the inverted index file
+    :param path: path to file
+    :return: the dictionary of the inverted index
+    """
+    with open(path, 'rb') as file:
+        return pickle.load(file)

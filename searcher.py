@@ -1,7 +1,6 @@
 from parser_module import Parse
 from ranker import Ranker
 import utils
-import nltk
 from nltk.corpus import wordnet as wn
 import os
 from math import sqrt, log10
@@ -10,11 +9,11 @@ import string
 
 class Searcher:
 
-    def __init__(self, inverted_index):
+    def __init__(self, inverted_index, config):
         """
         :param inverted_index: dictionary of inverted index
         """
-        self.parser = Parse()
+        self.parser = Parse(config)
         self.ranker = Ranker()
         self.inverted_index = inverted_index
 
@@ -31,13 +30,11 @@ class Searcher:
         for term in query:
             synsets = wn.synsets(term)
             if len(synsets) != 0:
-                # wordnet_expantion |= {l.replace('_', ' ') for l in synsets[0].lemma_names()}
                 for l in synsets[0].lemma_names():
                     wordnet_expantion |= set(l.split('_'))
                 wordnet_expantion -= {term}
                 hypernyms = synsets[0].hypernyms()
                 if len(hypernyms) != 0:
-                    # wordnet_expantion |= {l.replace('_', ' ') for l in hypernyms[0].lemma_names()}
                     for l in hypernyms[0].lemma_names():
                         wordnet_expantion |= set(l.split('_'))
 
@@ -66,14 +63,12 @@ class Searcher:
                 wiq_dict[term] = 1
         relevant_docs = dict()
         for letter in files_to_load:
-            posting_filename = os.path.join(relpath, *['Posting', letter])
+            posting_filename = os.path.join(relpath, letter)
             posting = utils.load_obj(posting_filename)
             terms = [term for term in query if term[0].lower() == letter]
             for term in terms:
                 try:  # an example of checks that you have to do
-                    print(term in [key for key in posting if key[0] == letter])
                     posting_doc = posting[term]
-                    print(term in [key for key in self.inverted_index if key[0] == letter])
                     df, sum_fij = self.inverted_index[term]
                     idf = log10(N / df)
                     tf_q = query.count(term)
@@ -86,7 +81,7 @@ class Searcher:
                             sum_wij, sum_wij_squared = relevant_docs[doc]
                             relevant_docs[doc] = (sum_wij + wij * tf_q, sum_wij_squared + wiq_dict[term])
                 except:
-                    print('term {} not found in posting'.format(term))
+                    continue
             posting = dict()
         for doc in relevant_docs:
             sum_wij_wiq, sum_wij_squared = relevant_docs[doc]

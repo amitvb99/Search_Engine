@@ -9,23 +9,21 @@ import utils
 import time
 import os
 import string
+import csv
 
 
-def run_engine(config=ConfigClass()):
+def run_engine(config):
     """
-
     :return:
     """
     number_of_documents = 0
 
     r = ReadFile(corpus_path=config.get__corpusPath())
 
-    # documents_list = list(r.read_file('covid19_07-10.snappy.parquet'))
     # saving_number is the number of documents we read together and then save all of them to the disk
     saving_number = 500000
     indexer = Indexer(config, saving_number)
     '''measure parsing time'''
-    start_time = time.time()
     p = Parse(config, saving_number)
 
     doc = []
@@ -38,39 +36,18 @@ def run_engine(config=ConfigClass()):
                     parsed_document = p.parse_doc(document)
                     indexer.add_new_doc(parsed_document)
                     number_of_documents += 1
-                    # if number_of_documents == 3000000:
-                    #     print('got here')
                 doc = []
-
-    print('Finished parsing and indexing. Starting to export files')
-    end_time = time.time()
-    print(f'Total time : {end_time - start_time} seconds, parsed {number_of_documents} documents')
 
 
 def merge_files(relpath):
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    print(f'started merging caps at: {current_time}')
     merged_caps = merge_caps(relpath)
-
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    print(f'started merging inverted at: {current_time}')
     merge_inverted_idx(relpath, merged_caps)
-
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    print(f'started merging posting at: {current_time}')
     merge_posting(relpath, merged_caps)
-
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    print(f'finished merging at: {current_time}')
 
 
 def load_index(relpath=''):
-    print('Load inverted index')
-    filename = os.path.join(relpath, *['Inverted_idx', 'inverted'])
+    # print('Load inverted index')
+    filename = os.path.join(relpath, 'inverted_index')
     inverted_index = utils.load_obj(filename)
     return inverted_index
 
@@ -121,7 +98,7 @@ def merge_inverted_idx(relpath, merged_caps):
                     merge_dict[term] = (df + temp_dict[term][0], sum_fij + temp_dict[term][1])
         utils.delete_obj(filename)
         temp_dict = dict()
-    filename = os.path.join(relpath, *['Inverted_idx', 'inverted'])
+    filename = os.path.join(relpath, 'inverted_index')
     utils.save_obj(merge_dict, filename)
     merge_dict = dict()
 
@@ -156,32 +133,39 @@ def merge_posting(relpath, merged_caps):
             temp_dict = dict()
         for term in merge_dict:
             merge_dict[term].sort()
-        filename = os.path.join(relpath, *['Posting', f'{letter}'])
+        filename = os.path.join(relpath, f'{letter}')
         utils.save_obj(merge_dict, filename)
         merge_dict = dict()
 
 
-# check the type of queries - list or text file
-def search_and_rank_query(query, inverted_index, k, relpath):
-    p = Parse()
+def search_and_rank_query(query, inverted_index, k, relpath, config):
+    p = Parse(config)
     query_as_list = p.parse_sentence(query)
-    searcher = Searcher(inverted_index)
+    searcher = Searcher(inverted_index, config)
     relevant_docs = searcher.relevant_docs_from_posting(query_as_list, relpath)
     ranked_docs = searcher.ranker.rank_relevant_doc(relevant_docs)
     return searcher.ranker.retrieve_top_k(ranked_docs, k)
 
 
-def main():
-    # input
-    config = ConfigClass()
-    # run_engine(config)
+def main(corpus_path, output_path, stemming, queries, num_docs_to_retrieve):
+    config = ConfigClass(output_path, stemming)
+    config.corpusPath = corpus_path
+    run_engine(config)
     if config.toStem:
         relpath = config.saveFilesWithStem
     else:
         relpath = config.saveFilesWithoutStem
-    # merge_files(relpath)
-    query = input("Please enter a query: ")
-    k = int(input("Please enter number of docs to retrieve: "))
+    merge_files(relpath)
+    if isinstance(queries, list):
+        queries_list = queries
+    else:
+        queries_list = []
+        queries_file = open(queries, encoding='utf8')
+        lines = [l for l in queries_file.readlines() if l is not '\n']
+        for line in lines:
+            queries_list.append(line[line.index('.') + 1: -1])
+
     inverted_index = load_index(relpath)
-    for doc_tuple in search_and_rank_query(query, inverted_index, k, relpath):
-        print('tweet id: {}, score (unique common words with query): {}'.format(doc_tuple[0], doc_tuple[1]))
+    for num, query in enumerate(queries_list):
+        for doc_tuple in search_and_rank_query(query, inverted_index, num_docs_to_retrieve, relpath, config):
+            print('Tweet id: {}, Score: {}'.format(doc_tuple[0], doc_tuple[1]))

@@ -2,11 +2,7 @@ from datetime import datetime
 import os
 
 from nltk.corpus import stopwords
-from nltk.tag import pos_tag
-from nltk.tokenize import word_tokenize
 from nltk.tokenize import TweetTokenizer
-import nltk
-from configuration import ConfigClass
 
 import utils
 from document import Document
@@ -22,9 +18,11 @@ class Parse:
     num_of_docs = 0
     filename_counter = 0
 
-    def __init__(self, config=ConfigClass(), group_size=500000):
-        self.stop_words = stopwords.words('english')
-        self.punctuators = [punc for punc in string.punctuation] + ['...', '']
+    def __init__(self, config, group_size=500000):
+        stopwords_to_add = ['rt']
+        self.stop_words = stopwords.words('english') + stopwords_to_add
+        puncs_to_add = ['...', '', '\'', '“', '”', '’', '…']
+        self.punctuators = [punc for punc in string.punctuation] + puncs_to_add
         self.tt = TweetTokenizer()
         self.stemmer = Stemmer()
         self.need_stemming = config.toStem
@@ -34,10 +32,6 @@ class Parse:
             self.relpath = config.saveFilesWithStem
         else:
             self.relpath = config.saveFilesWithoutStem
-        self.start_time = time.time()  # just for measuring time
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        print(f'started at: {current_time}')
 
     def parse_sentence(self, text, urls=dict()):
         """
@@ -48,15 +42,6 @@ class Parse:
         """
 
         text_tokens = self.tt.tokenize(text)
-        # text_tokens_without_stopwords = [w for w in text_tokens if w not in self.stop_words + self.punctuators]
-        # ---------------------- NAMED-ENTITY-RECOGNITION -------------------#
-        # pos_tagged_tokens = pos_tag(text_tokens_without_stopwords)
-        # named_entities = [tok for (tok, tag) in pos_tagged_tokens if tag == 'NNP' or tag == 'NNPS']
-        # named_entities = []
-        ######################################################################
-        # text_tokens_without_entities = [w for w in text_tokens_without_stopwords if w not in named_entities]
-        # text_tokens_without_entities = text_tokens_without_stopwords
-
         text_tokens_after_rules = []
 
         # regEx patterns
@@ -65,9 +50,6 @@ class Parse:
         mention_pattern = re.compile(r'(?:@[\w_]+)')
         numbers_pattern = re.compile(r'(?:(?:\d+,?)+(?:\.?\d+)?)')
         fractions_pattern = re.compile(r'(-?\d+)/(-?\d+)')
-        # emoji_pattern = \
-        #     re.compile(r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])')
-        # currency_pattren = re.compile(r'^[\$¢£€]?([0-9]{1,3},([0-9]{3},)*[0-9]{3}|[0-9]+)(\.[0-9][0-9])?[\$¢£€]?$')
 
         for i, token in enumerate(text_tokens):
             if token.lower() in self.stop_words + self.punctuators:
@@ -79,11 +61,13 @@ class Parse:
                 text_tokens.remove(token)
                 if len(text_tokens) > i:
                     token = text_tokens[i]
-                while token[0].isupper():
-                    maybe_ent += ' ' + token
-                    text_tokens.remove(token)
-                    if len(text_tokens) > i:
-                        token = text_tokens[i]
+                    while token[0].isupper():
+                        maybe_ent += ' ' + token
+                        text_tokens.remove(token)
+                        if len(text_tokens) > i:
+                            token = text_tokens[i]
+                        else:
+                            break
                 if maybe_ent[0].isupper():
                     self.caps_dict[maybe_ent.lower()] = False
                     self.check_capital(maybe_ent)
@@ -165,8 +149,9 @@ class Parse:
         splitted = re.split("[, \-!?:=\n/…]+", text)
         splitted[1:1] = splitted[1].split('.', maxsplit=1)
         splitted.remove(splitted[3])
-        without_empty = [s for s in splitted if s != '']
-        return without_empty
+        url_stopwords = self.stop_words + self.punctuators + ['http', 'www', 'https', 'com', 'co', 'twitter']
+        without_stopwords = [s for s in splitted if s not in url_stopwords]
+        return without_stopwords
 
     def numbers_rule(self, text):
         number_str = text.split()[0].replace(',', '')
@@ -187,7 +172,7 @@ class Parse:
         if self.need_stemming:
             after_tokens = []
             for token in tokens:
-                after_tokens.append(self.stemmer(token))
+                after_tokens.append(self.stemmer.stem_term(token))
             return after_tokens
         else:
             return tokens
@@ -214,9 +199,6 @@ class Parse:
         tokenized_text = self.parse_sentence(full_text, urls)
         parsed_text = [tok for tok in tokenized_text if tok not in self.stop_words + self.punctuators]
 
-        # # urls rule
-        # parsed_urls = [term for term in parsed_urls_with_puncs if term not in self.punctuators]
-
         doc_length = len(parsed_text)  # after text operations.
 
         for term in parsed_text:
@@ -237,10 +219,6 @@ class Parse:
 
         if self.num_of_docs % self.group_size == 0:
             self.write_file()
-            checkpiont = time.time() - self.start_time
-            now = datetime.now()
-            current_time = now.strftime("%H:%M:%S")
-            print(f'parsed {self.num_of_docs} documents, checkpoint time: {checkpiont}, time now: {current_time}')
 
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
                             quote_url, term_dict, doc_length)
