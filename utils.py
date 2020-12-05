@@ -33,7 +33,7 @@ def delete_obj(name):
         os.remove(name)
 
 
-def load_inverted_index(path):
+def load_inverted_index(path='posting' + os.sep + 'WithoutStem' + os.sep + 'inverted_index.pkl'):
     """
     This function loads the inverted index file
     :param path: path to file

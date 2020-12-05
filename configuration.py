@@ -2,29 +2,29 @@ import os
 
 
 class ConfigClass:
-    def __init__(self, output_path, stem=False):
-        self.corpusPath = r'C:\Users\amitv\University\Information retrieval\corpus'
+    def __init__(self, corpus_path, output_path, stem=False):
+        self.corpusPath = corpus_path
         self.savedFileMainFolder = output_path
 
         self.saveFilesWithStem = os.path.join(self.savedFileMainFolder, "WithStem")
         if not os.path.exists(self.saveFilesWithStem):
             os.mkdir(self.saveFilesWithStem)
-        if not os.path.exists(self.saveFilesWithStem + '\\Posting'):
-            os.mkdir(self.saveFilesWithStem + '\\Posting')
-        if not os.path.exists(self.saveFilesWithStem + '\\Inverted_idx'):
-            os.mkdir(self.saveFilesWithStem + '\\Inverted_idx')
-        if not os.path.exists(self.saveFilesWithStem + '\\CapitalLetters'):
-            os.mkdir(self.saveFilesWithStem + '\\CapitalLetters')
+        if not os.path.exists(self.saveFilesWithStem + os.sep + 'Posting'):
+            os.mkdir(self.saveFilesWithStem + os.sep + 'Posting')
+        if not os.path.exists(self.saveFilesWithStem + os.sep + 'Inverted_idx'):
+            os.mkdir(self.saveFilesWithStem + os.sep + 'Inverted_idx')
+        if not os.path.exists(self.saveFilesWithStem + os.sep + 'CapitalLetters'):
+            os.mkdir(self.saveFilesWithStem + os.sep + 'CapitalLetters')
 
         self.saveFilesWithoutStem = os.path.join(self.savedFileMainFolder, "WithoutStem")
         if not os.path.exists(self.saveFilesWithoutStem):
             os.mkdir(self.saveFilesWithoutStem)
-        if not os.path.exists(self.saveFilesWithoutStem + '\\Posting'):
-            os.mkdir(self.saveFilesWithoutStem + '\\Posting')
-        if not os.path.exists(self.saveFilesWithoutStem + '\\Inverted_idx'):
-            os.mkdir(self.saveFilesWithoutStem + '\\Inverted_idx')
-        if not os.path.exists(self.saveFilesWithoutStem + '\\CapitalLetters'):
-            os.mkdir(self.saveFilesWithoutStem + '\\CapitalLetters')
+        if not os.path.exists(self.saveFilesWithoutStem + os.sep + 'Posting'):
+            os.mkdir(self.saveFilesWithoutStem + os.sep + 'Posting')
+        if not os.path.exists(self.saveFilesWithoutStem + os.sep + 'Inverted_idx'):
+            os.mkdir(self.saveFilesWithoutStem + os.sep + 'Inverted_idx')
+        if not os.path.exists(self.saveFilesWithoutStem + os.sep + 'CapitalLetters'):
+            os.mkdir(self.saveFilesWithoutStem + os.sep + 'CapitalLetters')
         self.toStem = stem
 
         # print('Project was created successfully..')

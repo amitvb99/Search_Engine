@@ -27,16 +27,17 @@ def run_engine(config):
     p = Parse(config, saving_number)
 
     doc = []
-    for root, dirs, files in os.walk(r.corpus_path):
+    npy_dirs = [root for root, dirs, files in os.walk(r.corpus_path)]
+    for dirr in npy_dirs:
+        files = [os.path.join(dirr, file) for file in os.listdir(dirr) if file.endswith('.parquet')]
         for file in files:
-            if file.endswith('.parquet'):
-                doc = r.read_file(file)
-                for document in doc:
-                    # parse the document and index it
-                    parsed_document = p.parse_doc(document)
-                    indexer.add_new_doc(parsed_document)
-                    number_of_documents += 1
-                doc = []
+            doc = r.read_file(file)
+            for document in doc:
+                # parse the document and index it
+                parsed_document = p.parse_doc(document)
+                indexer.add_new_doc(parsed_document)
+                number_of_documents += 1
+            doc = []
 
 
 def merge_files(relpath):
@@ -148,8 +149,7 @@ def search_and_rank_query(query, inverted_index, k, relpath, config):
 
 
 def main(corpus_path, output_path, stemming, queries, num_docs_to_retrieve):
-    config = ConfigClass(output_path, stemming)
-    config.corpusPath = corpus_path
+    config = ConfigClass(corpus_path, output_path, stemming)
     run_engine(config)
     if config.toStem:
         relpath = config.saveFilesWithStem
