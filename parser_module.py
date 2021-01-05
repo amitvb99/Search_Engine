@@ -2,6 +2,7 @@ import os
 
 from nltk.corpus import stopwords
 from nltk.tokenize import TweetTokenizer
+from nltk.corpus import words
 
 import utils
 from document import Document
@@ -12,12 +13,12 @@ import string
 
 
 class Parse:
-
     num_of_docs = 0
     filename_counter = 0
 
     def __init__(self, config):
         # stopwords_to_add = ['rt']
+        self.english_word = words.words()
         self.stop_words = stopwords.words('english')
         puncs_to_add = ['...', '', '\'', '“', '”', '’', '…']
         self.punctuators = [punc for punc in string.punctuation] + puncs_to_add
@@ -47,9 +48,19 @@ class Parse:
         mention_pattern = re.compile(r'(?:@[\w_]+)')
         numbers_pattern = re.compile(r'(?:(?:\d+,?)+(?:\.?\d+)?)')
         fractions_pattern = re.compile(r'(-?\d+)/(-?\d+)')
+        emails_pattern = re.compile(r'\w\S*@.*\w')
 
         for i, token in enumerate(text_tokens):
             if token.lower() in self.stop_words + self.punctuators:
+                continue
+
+            if "-" in token:  # split hyphen
+                text_tokens_after_rules += token.replace("-", " ").split()
+
+            if token.encode('ascii', 'ignore').decode('ascii') == '':  # remove emoji
+                continue
+
+            if emails_pattern.match(token):  # remove emails
                 continue
 
             maybe_ent = ''
@@ -79,7 +90,7 @@ class Parse:
             if hashtag_pattern.match(token):
                 text_tokens_after_rules += self.stemming_rule(self.hashtag_rule(token[1:]))
 
-            elif url_pattern.match(token):
+            elif url_pattern.match(token):  # not use url
                 # if token in urls:
                 #     url = urls[token]
                 #     if url is not None:
@@ -91,25 +102,25 @@ class Parse:
 
             elif numbers_pattern.match(token):
                 if numbers_pattern.match(token).span() == (0, len(token)):
-                    if i+1 < len(text_tokens):
-                        if text_tokens[i+1].lower() in ['percent', 'percentage', '%']:
-                            per = text_tokens[i+1]
+                    if i + 1 < len(text_tokens):
+                        if text_tokens[i + 1].lower() in ['percent', 'percentage', '%']:
+                            per = text_tokens[i + 1]
                             text_tokens_after_rules += [self.numbers_rule(token)[0] + '%']
                             text_tokens.remove(per)
 
-                        elif text_tokens[i+1] in ['$', '¢', '£', '€']:
-                            sign = text_tokens[i+1]
+                        elif text_tokens[i + 1] in ['$', '¢', '£', '€']:
+                            sign = text_tokens[i + 1]
                             text_tokens_after_rules += [sign + self.numbers_rule(token)[0]]
 
                         elif token.replace('.', '').replace(',', '').isdigit():
                             zeros_dict = {'thousand': '0' * 3, 'million': '0' * 6, 'billion': '0' * 9}
-                            multiplier = text_tokens[i+1]
+                            multiplier = text_tokens[i + 1]
                             if multiplier.lower() in zeros_dict.keys():
                                 text_tokens_after_rules += self.numbers_rule(token + zeros_dict[multiplier.lower()])
                                 text_tokens.remove(multiplier)
 
-                            elif fractions_pattern.match(text_tokens[i+1]):
-                                frac = text_tokens[i+1]
+                            elif fractions_pattern.match(text_tokens[i + 1]):
+                                frac = text_tokens[i + 1]
                                 text_tokens_after_rules += [self.numbers_rule(token)[0] + f' {frac}']
                                 text_tokens.remove(frac)
 
@@ -127,6 +138,9 @@ class Parse:
                         text_tokens_after_rules += self.numbers_rule(token)
                 else:
                     text_tokens_after_rules += self.stemming_rule([token])
+
+            elif token not in self.english_word:  # remove words not english
+                continue
 
             else:
                 text_tokens_after_rules += self.stemming_rule([token])
@@ -157,14 +171,14 @@ class Parse:
             number = float(number_str)
         else:
             number = int(number_str)
-        if number < 10**3:
+        if number < 10 ** 3:
             return ["{:.3f}".format(number).strip('0').strip('.')]
-        elif 10**3 <= number < 10**6:
-            return ["{:.3f}".format(number / 10**3).strip('0').strip('.') + 'K']
-        elif 10**6 <= number < 10**9:
-            return ["{:.3f}".format(number / 10**6).strip('0').strip('.') + 'M']
+        elif 10 ** 3 <= number < 10 ** 6:
+            return ["{:.3f}".format(number / 10 ** 3).strip('0').strip('.') + 'K']
+        elif 10 ** 6 <= number < 10 ** 9:
+            return ["{:.3f}".format(number / 10 ** 6).strip('0').strip('.') + 'M']
         else:
-            return ["{:.3f}".format(number / 10**9).strip('0').strip('.') + 'B']
+            return ["{:.3f}".format(number / 10 ** 9).strip('0').strip('.') + 'B']
 
     def stemming_rule(self, tokens):
         if self.need_stemming:
