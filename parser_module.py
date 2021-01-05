@@ -1,4 +1,3 @@
-from datetime import datetime
 import os
 
 from nltk.corpus import stopwords
@@ -10,7 +9,6 @@ from stemmer import Stemmer
 import re
 import json
 import string
-import time
 
 
 class Parse:
@@ -18,20 +16,19 @@ class Parse:
     num_of_docs = 0
     filename_counter = 0
 
-    def __init__(self, config, group_size=500000):
-        stopwords_to_add = ['rt']
-        self.stop_words = stopwords.words('english') + stopwords_to_add
+    def __init__(self, config):
+        # stopwords_to_add = ['rt']
+        self.stop_words = stopwords.words('english')
         puncs_to_add = ['...', '', '\'', '“', '”', '’', '…']
         self.punctuators = [punc for punc in string.punctuation] + puncs_to_add
         self.tt = TweetTokenizer()
         self.stemmer = Stemmer()
         self.need_stemming = config.toStem
         self.caps_dict = {}
-        self.group_size = group_size
-        if config.toStem:
-            self.relpath = config.saveFilesWithStem
-        else:
-            self.relpath = config.saveFilesWithoutStem
+        # if config.toStem:
+        #     self.relpath = config.saveFilesWithStem
+        # else:
+        #     self.relpath = config.saveFilesWithoutStem
 
     def parse_sentence(self, text, urls=dict()):
         """
@@ -83,10 +80,11 @@ class Parse:
                 text_tokens_after_rules += self.stemming_rule(self.hashtag_rule(token[1:]))
 
             elif url_pattern.match(token):
-                if token in urls:
-                    url = urls[token]
-                    if url is not None:
-                        text_tokens_after_rules += self.URL_rule(url)
+                # if token in urls:
+                #     url = urls[token]
+                #     if url is not None:
+                #         text_tokens_after_rules += self.URL_rule(url)
+                continue
 
             elif mention_pattern.match(token):
                 text_tokens_after_rules += self.stemming_rule([token])
@@ -217,8 +215,8 @@ class Parse:
             if term.upper() in term_dict.keys():
                 term_dict[term] += term_dict.pop(term.upper())
 
-        if self.num_of_docs % self.group_size == 0:
-            self.write_file()
+        # if self.num_of_docs % self.group_size == 0:
+        #     self.write_file()
 
         document = Document(tweet_id, tweet_date, full_text, url, retweet_text, retweet_url, quote_text,
                             quote_url, term_dict, doc_length)
@@ -236,8 +234,8 @@ class Parse:
                     if word[0].islower():
                         self.caps_dict[word.lower()] = True
 
-    def write_file(self):
-        utils.save_obj(self.caps_dict,
-                       os.path.join(os.path.join(self.relpath, 'CapitalLetters'), f'cl{self.filename_counter}'))
-        self.caps_dict = {}
-        self.filename_counter += 1
+    # def write_file(self):
+    #     utils.save_obj(self.caps_dict,
+    #                    os.path.join(os.path.join(self.relpath, 'CapitalLetters'), f'cl{self.filename_counter}'))
+    #     self.caps_dict = {}
+    #     self.filename_counter += 1

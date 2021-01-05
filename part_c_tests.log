@@ -1,0 +1,14 @@
+INFO 2021-01-05 17:09:26,035: Successfully loaded benchmark labels data.
+INFO 2021-01-05 17:09:26,037: Successfully loaded queries data.
+ERROR 2021-01-05 17:09:26,040: search_engine_1.py does not exist.
+ERROR 2021-01-05 17:09:26,040: search_engine_2.py does not exist.
+INFO 2021-01-05 17:09:26,593: Successfully imported module search_engine_best.
+ERROR 2021-01-05 17:09:26,593: The following error occured while testing the module search_engine_best.
+ERROR 2021-01-05 17:09:26,593: __init__() missing 1 required positional argument: 'config'
+Traceback (most recent call last):
+  File "C:/Users/amitv/University/Information retrieval/Search_Engine/test_part_c_students.py", line 93, in <module>
+    engine = se.SearchEngine(config=config)
+  File "C:\Users\amitv\University\Information retrieval\Search_Engine\search_engine_best.py", line 17, in __init__
+    self._parser = Parse()
+TypeError: __init__() missing 1 required positional argument: 'config'
+DEBUG 2021-01-05 17:09:26,594: Total runtime was: 0:00:00.569331

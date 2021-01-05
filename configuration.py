@@ -2,7 +2,8 @@ import os
 
 
 class ConfigClass:
-    def __init__(self, corpus_path, output_path, stem=False):
+    def __init__(self, corpus_path='',
+                 output_path='C:\\Users\\amitv\\University\\Information retrieval\\output', stem=False):
         self.corpusPath = corpus_path
         self.savedFileMainFolder = output_path
 
