@@ -1,6 +1,6 @@
-import string
 import os
 import utils
+from math import log10
 
 
 class Indexer:
@@ -23,6 +23,8 @@ class Indexer:
                 filename = os.path.join(self.config.saveFilesWithStem, fn)
             else:
                 filename = os.path.join(self.config.saveFilesWithoutStem, fn)
+
+        print(filename)
         utils.save_obj(self.inverted_idx, filename)
 
     # DO NOT MODIFY THIS SIGNATURE
@@ -64,15 +66,18 @@ class Indexer:
         for term in document_dictionary.keys():
             try:
                 fij = document_dictionary[term]
-                tf = fij / document.max_tf
+                # tf = fij / document.max_tf
+                tf = 0.9 + 0.1 * fij / document.max_tf    # double normalization (K)
+                # tf = log10(1 + fij)                     # log normalization
+                # tf = fij / document.doc_length
                 # Update inverted index and posting
                 if term not in self.inverted_idx.keys():
                     self.inverted_idx[term] = [(1, fij), {
-                        document.tweet_id: (document.max_tf, document.unique_terms, fij, tf)
+                        document.tweet_id: (document.max_tf, document.doc_length, document.unique_terms, fij, tf)
                     }]
                 else:
                     (df, sum_fij), tweet_dict = self.inverted_idx[term]
-                    tweet_dict[document.tweet_id] = (document.max_tf, document.unique_terms, fij, tf)
+                    tweet_dict[document.tweet_id] = (document.max_tf, document.doc_length, document.unique_terms, fij, tf)
                     self.inverted_idx[term] = [(df+1, sum_fij + fij), tweet_dict]
 
             except:

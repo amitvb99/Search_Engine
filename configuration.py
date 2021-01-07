@@ -4,8 +4,12 @@ import os
 class ConfigClass:
     def __init__(self, corpus_path='',
                  output_path='C:\\Users\\amitv\\University\\Information retrieval\\output', stem=False):
+        self._download_model = False
+        self._model_url = None
         self.corpusPath = corpus_path
         self.savedFileMainFolder = output_path
+        self.google_news_vectors_negative300_path = '../../../../GoogleNews-vectors-negative300.bin'
+        self.glove_twitter_27B_25d_path = '../../../../glove.twitter.27B.25d.txt'
 
         self.saveFilesWithStem = os.path.join(self.savedFileMainFolder, "WithStem")
         if not os.path.exists(self.saveFilesWithStem):
@@ -32,3 +36,9 @@ class ConfigClass:
 
     def get__corpusPath(self):
         return self.corpusPath
+    
+    def get_model_url(self):
+        return self._model_url
+
+    def get_download_model(self):
+        return self._download_model

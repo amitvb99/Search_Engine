@@ -76,6 +76,6 @@ class SearchEngine:
             a list of tweet_ids where the first element is the most relavant
             and the last is the least relevant result.
         """
-        searcher = Searcher(parser=self._parser, indexer=self._indexer, wordnet=True)
+        searcher = Searcher(parser=self._parser, indexer=self._indexer, correction=True)
         n_relevant, ranked_doc_ids = searcher.search(query)
         return n_relevant, [id for (id, rank) in ranked_doc_ids]

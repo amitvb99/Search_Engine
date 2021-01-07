@@ -1,14 +1,55 @@
-INFO 2021-01-05 17:09:26,035: Successfully loaded benchmark labels data.
-INFO 2021-01-05 17:09:26,037: Successfully loaded queries data.
-ERROR 2021-01-05 17:09:26,040: search_engine_1.py does not exist.
-ERROR 2021-01-05 17:09:26,040: search_engine_2.py does not exist.
-INFO 2021-01-05 17:09:26,593: Successfully imported module search_engine_best.
-ERROR 2021-01-05 17:09:26,593: The following error occured while testing the module search_engine_best.
-ERROR 2021-01-05 17:09:26,593: __init__() missing 1 required positional argument: 'config'
+INFO 2021-01-07 17:42:36,472: Successfully loaded benchmark labels data.
+INFO 2021-01-07 17:42:36,473: Successfully loaded queries data.
+INFO 2021-01-07 17:42:36,791: Successfully imported module search_engine_1.
+DEBUG 2021-01-07 17:42:40,571: Building the index in search_engine_1 for benchmark data took 3.6310014000000006 seconds.
+DEBUG 2021-01-07 17:42:40,572: search_engine_1 successfully returned 36 results for the query 'bioweapon'.
+DEBUG 2021-01-07 17:42:40,575: search_engine_1 successfully returned 1019 results for query number 1.
+DEBUG 2021-01-07 17:42:40,597: search_engine_1 successfully returned 3861 results for query number 2.
+DEBUG 2021-01-07 17:42:40,603: search_engine_1 successfully returned 2199 results for query number 3.
+DEBUG 2021-01-07 17:42:40,606: search_engine_1 successfully returned 823 results for query number 4.
+DEBUG 2021-01-07 17:42:40,608: search_engine_1 successfully returned 382 results for query number 5.
+DEBUG 2021-01-07 17:42:40,622: search_engine_1 successfully returned 4115 results for query number 6.
+DEBUG 2021-01-07 17:42:40,625: search_engine_1 successfully returned 299 results for query number 7.
+DEBUG 2021-01-07 17:42:40,630: search_engine_1 successfully returned 1893 results for query number 8.
+DEBUG 2021-01-07 17:42:40,638: search_engine_1 successfully returned 2288 results for query number 9.
+DEBUG 2021-01-07 17:42:40,643: search_engine_1 successfully returned 2162 results for query number 10.
+DEBUG 2021-01-07 17:42:40,651: search_engine_1 successfully returned 3929 results for query number 11.
+DEBUG 2021-01-07 17:42:40,664: search_engine_1 successfully returned 4114 results for query number 12.
+DEBUG 2021-01-07 17:42:40,684: search_engine_1 successfully returned 3551 results for query number 13.
+DEBUG 2021-01-07 17:42:40,691: search_engine_1 successfully returned 1960 results for query number 14.
+DEBUG 2021-01-07 17:42:40,692: search_engine_1 successfully returned 122 results for query number 15.
+DEBUG 2021-01-07 17:42:40,694: search_engine_1 successfully returned 513 results for query number 16.
+DEBUG 2021-01-07 17:42:40,699: search_engine_1 successfully returned 2406 results for query number 17.
+DEBUG 2021-01-07 17:42:40,702: search_engine_1 successfully returned 356 results for query number 18.
+DEBUG 2021-01-07 17:42:40,705: search_engine_1 successfully returned 1729 results for query number 19.
+DEBUG 2021-01-07 17:42:40,709: search_engine_1 successfully returned 1815 results for query number 20.
+DEBUG 2021-01-07 17:42:40,713: search_engine_1 successfully returned 1748 results for query number 21.
+DEBUG 2021-01-07 17:42:40,723: search_engine_1 successfully returned 4104 results for query number 22.
+DEBUG 2021-01-07 17:42:40,766: search_engine_1 successfully returned 3884 results for query number 23.
+DEBUG 2021-01-07 17:42:40,775: search_engine_1 successfully returned 2787 results for query number 24.
+DEBUG 2021-01-07 17:42:40,784: search_engine_1 successfully returned 3874 results for query number 25.
+DEBUG 2021-01-07 17:42:40,790: search_engine_1 successfully returned 1526 results for query number 26.
+DEBUG 2021-01-07 17:42:40,794: search_engine_1 successfully returned 1518 results for query number 27.
+DEBUG 2021-01-07 17:42:40,803: search_engine_1 successfully returned 3801 results for query number 28.
+DEBUG 2021-01-07 17:42:40,809: search_engine_1 successfully returned 1656 results for query number 29.
+DEBUG 2021-01-07 17:42:40,813: search_engine_1 successfully returned 1718 results for query number 30.
+DEBUG 2021-01-07 17:42:40,815: search_engine_1 successfully returned 542 results for query number 31.
+DEBUG 2021-01-07 17:42:40,825: search_engine_1 successfully returned 3973 results for query number 32.
+DEBUG 2021-01-07 17:42:40,838: search_engine_1 successfully returned 3863 results for query number 33.
+DEBUG 2021-01-07 17:42:40,844: search_engine_1 successfully returned 1816 results for query number 34.
+DEBUG 2021-01-07 17:42:40,848: search_engine_1 successfully returned 1385 results for query number 35.
+DEBUG 2021-01-07 17:42:46,780: search_engine_1 results have MAP value of 0.7422167250609639.
+DEBUG 2021-01-07 17:42:46,809: search_engine_1 results produced average precision of 0.6344433355269282.
+DEBUG 2021-01-07 17:42:46,809: search_engine_1 results produced average precision@5 of 0.8342857142857144.
+DEBUG 2021-01-07 17:42:46,809: search_engine_1 results produced average precision@10 of 0.8085714285714286.
+DEBUG 2021-01-07 17:42:46,809: search_engine_1 results produced average precision@50 of 0.7344444444444445.
+DEBUG 2021-01-07 17:42:46,809: search_engine_1 results produced average recall of 0.8681153497293663.
+INFO 2021-01-07 17:42:46,810: Successfully imported module search_engine_best.
+DEBUG 2021-01-07 17:42:51,040: Building the index in search_engine_best for benchmark data took 4.061504599999999 seconds.
+ERROR 2021-01-07 17:42:51,041: The following error occured while testing the module search_engine_best.
+ERROR 2021-01-07 17:42:51,041: load_precomputed_model() takes 1 positional argument but 2 were given
 Traceback (most recent call last):
-  File "C:/Users/amitv/University/Information retrieval/Search_Engine/test_part_c_students.py", line 93, in <module>
-    engine = se.SearchEngine(config=config)
-  File "C:\Users\amitv\University\Information retrieval\Search_Engine\search_engine_best.py", line 17, in __init__
-    self._parser = Parse()
-TypeError: __init__() missing 1 required positional argument: 'config'
-DEBUG 2021-01-05 17:09:26,594: Total runtime was: 0:00:00.569331
+  File "C:/Users/amitv/University/Information retrieval/Search_Engine/test_part_c_students.py", line 107, in <module>
+    engine.load_precomputed_model(model_dir)
+TypeError: load_precomputed_model() takes 1 positional argument but 2 were given
+DEBUG 2021-01-07 17:42:51,041: Total runtime was: 0:00:14.581431

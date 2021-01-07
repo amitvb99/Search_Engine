@@ -12,6 +12,8 @@ def expand_query(query_as_list, stop_words):
     wordnet_expantion = set()
     for term in query_as_list:
         synsets = wn.synsets(term)
+        # synsets = [syn for syn in synsets if wn.wup_similarity(syn, synsets[0]) is not None]
+        # synsets = [syn for syn in synsets if wn.wup_similarity(syn, synsets[0]) > 0.8]
         if len(synsets) != 0:
             for l in synsets[0].lemma_names():
                 wordnet_expantion |= set(l.split('_'))

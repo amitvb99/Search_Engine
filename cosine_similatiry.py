@@ -31,20 +31,21 @@ class CosineSimCalculator:
             try:  # an example of checks that you have to do
                 (df, sum_fij), tweet_dict = self.inverted_idx[term]
                 idf = log10(self.N / df)
-                tf_q = self.query.count(term)
-                for id, (max_tf, unique, fij, tf) in tweet_dict.items():
-                    doc = id
+                tf_q = self.wiq_dict[term]
+                for doc_id, (max_tf, doc_len, unique, fij, tf) in tweet_dict.items():
                     wij = idf * tf
-                    if doc not in self.doc_scores:
-                        self.doc_scores[doc] = (wij * tf_q, self.wiq_dict[term])
+                    if doc_id not in self.doc_scores:
+                        self.doc_scores[doc_id] = (wij * tf_q, wij**2, tf_q**2)
                     else:
-                        sum_wij, sum_wij_squared = self.doc_scores[doc]
-                        self.doc_scores[doc] = (sum_wij + wij * tf_q, sum_wij_squared + self.wiq_dict[term])
+                        sum_wij, sum_wij_squared, sum_wiq_squared = self.doc_scores[doc_id]
+                        self.doc_scores[doc_id] = (sum_wij + (wij * tf_q),
+                                                   sum_wij_squared + wij**2,
+                                                   sum_wiq_squared + tf_q**2)
             except:
                 continue
 
         for doc in self.doc_scores:
-            sum_wij_wiq, sum_wij_squared = self.doc_scores[doc]
-            self.doc_scores[doc] = sum_wij_wiq / sqrt(sum_wij_squared * sum([wiq**2 for wiq in self.wiq_dict.values()]))
+            sum_wij_wiq, sum_wij_squared, sum_wiq_squared = self.doc_scores[doc]
+            self.doc_scores[doc] = sum_wij_wiq / sqrt(sum_wij_squared * sum_wiq_squared)
 
         return self.doc_scores

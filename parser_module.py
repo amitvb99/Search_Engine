@@ -3,6 +3,7 @@ import os
 from nltk.corpus import stopwords
 from nltk.tokenize import TweetTokenizer
 from nltk.corpus import words
+from nltk.corpus import wordnet as wn
 
 import utils
 from document import Document
@@ -10,13 +11,15 @@ from stemmer import Stemmer
 import re
 import json
 import string
+from configuration import ConfigClass
 
 
 class Parse:
     num_of_docs = 0
-    filename_counter = 0
+    total_doc_length = 0
+    retweet_dict = {}
 
-    def __init__(self, config):
+    def __init__(self, config=None, advanced=False):
         # stopwords_to_add = ['rt']
         self.english_word = words.words()
         self.stop_words = stopwords.words('english')
@@ -24,14 +27,12 @@ class Parse:
         self.punctuators = [punc for punc in string.punctuation] + puncs_to_add
         self.tt = TweetTokenizer()
         self.stemmer = Stemmer()
-        self.need_stemming = config.toStem
+        self.need_stemming = config.toStem if isinstance(config, ConfigClass) else False
         self.caps_dict = {}
-        # if config.toStem:
-        #     self.relpath = config.saveFilesWithStem
-        # else:
-        #     self.relpath = config.saveFilesWithoutStem
+        self.rules_dict = {}
+        self.advanced = advanced
 
-    def parse_sentence(self, text, urls=dict()):
+    def parse_sentence(self, text, urls={}):
         """
         This function tokenize, remove stop words and apply lower case for every word within the text
         :param urls:
@@ -49,19 +50,24 @@ class Parse:
         numbers_pattern = re.compile(r'(?:(?:\d+,?)+(?:\.?\d+)?)')
         fractions_pattern = re.compile(r'(-?\d+)/(-?\d+)')
         emails_pattern = re.compile(r'\w\S*@.*\w')
+        english_word_pattern = re.compile(r"[A-Za-z'-]+")
 
         for i, token in enumerate(text_tokens):
             if token.lower() in self.stop_words + self.punctuators:
                 continue
 
-            if "-" in token:  # split hyphen
-                text_tokens_after_rules += token.replace("-", " ").split()
+            if self.advanced:
+                if "-" in token:  # split hyphen
+                    text_tokens_after_rules += token.replace("-", " ").split()
 
-            if token.encode('ascii', 'ignore').decode('ascii') == '':  # remove emoji
-                continue
+                if "/" in token:  # split hyphen
+                    text_tokens_after_rules += token.replace("/", " ").split()
 
-            if emails_pattern.match(token):  # remove emails
-                continue
+                if token.encode('ascii', 'ignore').decode('ascii') == '':  # remove emoji
+                    continue
+
+                if emails_pattern.match(token):  # remove emails
+                    continue
 
             maybe_ent = ''
             if token[0].isupper():
@@ -91,10 +97,10 @@ class Parse:
                 text_tokens_after_rules += self.stemming_rule(self.hashtag_rule(token[1:]))
 
             elif url_pattern.match(token):  # not use url
-                # if token in urls:
-                #     url = urls[token]
-                #     if url is not None:
-                #         text_tokens_after_rules += self.URL_rule(url)
+                if token in urls:
+                    url = urls[token]
+                    if url is not None:
+                        text_tokens_after_rules += self.URL_rule(url)
                 continue
 
             elif mention_pattern.match(token):
@@ -111,6 +117,12 @@ class Parse:
                         elif text_tokens[i + 1] in ['$', '¢', '£', '€']:
                             sign = text_tokens[i + 1]
                             text_tokens_after_rules += [sign + self.numbers_rule(token)[0]]
+                            text_tokens.remove(sign)
+
+                        elif text_tokens[i+1].upper() in ['M', 'KM', 'CM', 'MM']:
+                            sign = text_tokens[i + 1]
+                            text_tokens_after_rules += [self.numbers_rule(token)[0] + sign.upper()]
+                            text_tokens.remove(sign)
 
                         elif token.replace('.', '').replace(',', '').isdigit():
                             zeros_dict = {'thousand': '0' * 3, 'million': '0' * 6, 'billion': '0' * 9}
@@ -139,9 +151,6 @@ class Parse:
                 else:
                     text_tokens_after_rules += self.stemming_rule([token])
 
-            elif token not in self.english_word:  # remove words not english
-                continue
-
             else:
                 text_tokens_after_rules += self.stemming_rule([token])
 
@@ -161,8 +170,8 @@ class Parse:
         splitted = re.split("[, \-!?:=\n/…]+", text)
         splitted[1:1] = splitted[1].split('.', maxsplit=1)
         splitted.remove(splitted[3])
-        url_stopwords = self.stop_words + self.punctuators + ['http', 'www', 'https', 'com', 'co', 'twitter']
-        without_stopwords = [s for s in splitted if s not in url_stopwords]
+        url_stopwords = self.stop_words + self.punctuators + ['http', 'www', 'https', 'com', 'co', 'twitter', 'status', 'web']
+        without_stopwords = [s for s in splitted[:3] if s not in url_stopwords]
         return without_stopwords
 
     def numbers_rule(self, text):
@@ -203,7 +212,7 @@ class Parse:
         full_text = doc_as_list[2]
         url = doc_as_list[3]
         retweet_text = doc_as_list[4]
-        retweet_url = doc_as_list[5]
+        retweet_url = doc_as_list[6]
         quote_text = doc_as_list[6]
         quote_url = doc_as_list[7]
         term_dict = {}
@@ -211,7 +220,21 @@ class Parse:
         tokenized_text = self.parse_sentence(full_text, urls)
         parsed_text = [tok for tok in tokenized_text if tok not in self.stop_words + self.punctuators]
 
-        doc_length = len(parsed_text)  # after text operations.
+        doc_length = len(parsed_text)  # after text operations. TODO: check if before parsing gives better results
+        self.total_doc_length += doc_length
+
+        if retweet_url is not None:
+            # print(retweet_url)
+            tid_ptrn = re.compile('\d{7,}')
+            # for url in retweet_url.values():
+            s = tid_ptrn.search(retweet_url)
+            if s is not None:
+                tid = retweet_url[s.start():s.end()]
+                if tid not in self.retweet_dict:
+                    self.retweet_dict[tid] = 1
+                else:
+                    self.retweet_dict[tid] += 1
+
 
         for term in parsed_text:
             if term not in term_dict.keys():
@@ -240,16 +263,7 @@ class Parse:
         if len(token.split()) > 1:
             for word in token.split():
                 if word.lower() not in self.caps_dict.keys():
-                    if word[0].isupper():
-                        self.caps_dict[word.lower()] = False
-                    else:
-                        self.caps_dict[word.lower()] = True
+                    self.caps_dict[word.lower()] = word[0].islower()
                 else:
                     if word[0].islower():
                         self.caps_dict[word.lower()] = True
-
-    # def write_file(self):
-    #     utils.save_obj(self.caps_dict,
-    #                    os.path.join(os.path.join(self.relpath, 'CapitalLetters'), f'cl{self.filename_counter}'))
-    #     self.caps_dict = {}
-    #     self.filename_counter += 1
